@@ -13,3 +13,6 @@ In the coding project I will start working on extracting metadata (e.g. sampling
 - putting sequences in the Chlorophyte tree after to reassure it's only Pedinophyceae of the endosymbiont clade
 - extract headers of the sequences
 - start collecting the metadata
+
+### extract ASV information
+
