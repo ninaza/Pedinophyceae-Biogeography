@@ -1,64 +1,66 @@
-# Habitat Analysis Script
-
-# Load necessary libraries
+# Load required libraries
 library(ggplot2)
 library(dplyr)
-library(vegan)
 library(here)
 
-# Function to create environment plots
-create_env_plot <- function(data) {
-  ggplot(data, aes(x = environment_variable, y = dependent_variable)) + 
-    geom_point() + 
-    theme_minimal() + 
-    labs(title = "Environment Plot")
+# Load data
+load_data <- function() {
+  tryCatch({
+    abundance_table <- read.csv(here("pedinos_filtered_abundance.csv"))
+    metadata <- read.csv(here("pedinos_edit_metadata.csv"))
+    metadata_all <- read.csv(here("eukbank_18S_V4_samples.tsv"), sep = "\t")
+    
+    return(list(abundance = abundance_table, metadata = metadata, metadata_all = metadata_all))
+  }, error = function(e) {
+    stop("Error loading data: ", e$message)
+  })
 }
 
-# Function to create habitat violin plots
-create_violin_plots <- function(data) {
-  ggplot(data, aes(x = habitat, y = nreads)) + 
-    geom_violin() + 
-    theme_minimal() + 
-    labs(title = "Violin Plot of nreads")
-
-  ggplot(data, aes(x = habitat, y = relative_abundance)) + 
-    geom_violin() + 
-    theme_minimal() + 
-    labs(title = "Violin Plot of Relative Abundance")
+# Plot environment analysis
+plot_environment <- function(data) {
+  tryCatch({
+    ggplot(data, aes(x = factor(variable), y = value)) +
+      geom_bar(stat = "identity") +
+      labs(title = "Environment Plot Analysis") +
+      theme_minimal()
+  }, error = function(e) {
+    stop("Error in environment plot: ", e$message)
+  })
 }
 
-# Function for Kruskal-Wallis test
-run_kruskal_test <- function(data){
-  kruskal.test(dependent_variable ~ habitat, data = data)
+# Habitat abundance analysis
+plot_habitat_abundance <- function(data) {
+  tryCatch({
+    ggplot(data, aes(x = habitat, y = nreads)) +
+      geom_violin() +
+      labs(title = "Habitat Abundance Analysis (Nreads)") +
+      theme_minimal()
+    ggplot(data, aes(x = habitat, y = relative_abundance)) +
+      geom_violin() +
+      labs(title = "Habitat Abundance Analysis (Relative Abundance)") +
+      theme_minimal()
+  }, error = function(e) {
+    stop("Error in habitat abundance plot: ", e$message)
+  })
 }
 
-# Function for summary statistics
-get_summary_stats <- function(data){
-  data %>% 
-    group_by(habitat) %>% 
-    summarise(
-      mean_nreads = mean(nreads),
-      mean_relative_abundance = mean(relative_abundance),
-      .groups = 'drop'
-    )
+# Kruskal-Wallis test
+perform_kruskal_test <- function(data) {
+  tryCatch({
+    kruskal.test(nreads ~ habitat, data = data)
+    kruskal.test(relative_abundance ~ habitat, data = data)
+  }, error = function(e) {
+    stop("Error performing Kruskal-Wallis test: ", e$message)
+  })
 }
 
-# Load your data
-# Make sure to adjust the path according to your directory structure
-habitat_data <- read.csv(here("data", "habitat_data.csv"))
+# Main analysis function
+run_analysis <- function() {
+  data <- load_data()
+  plot_environment(data$abundance)
+  plot_habitat_abundance(data$abundance)
+  perform_kruskal_test(data$abundance)
+}
 
-# Generate plots
-env_plot <- create_env_plot(habitat_data)
-violin_plots <- create_violin_plots(habitat_data)
-
-# Run statistical tests
-kruskal_result <- run_kruskal_test(habitat_data)
-
-# Get summary statistics
-summary_stats <- get_summary_stats(habitat_data)
-
-# Print results
-print(env_plot)
-print(violin_plots)
-print(kruskal_result)
-print(summary_stats)
+# Execute the analysis
+run_analysis()
