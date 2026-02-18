@@ -41,7 +41,7 @@ perform_statistical_tests <- function(data) {
 summary_statistics_by_habitat <- function(data) {
   data %>%
     group_by(Habitat) %>%
-    summarise(mean_abundance = mean(Abundance), sd_abundance = sd(Abundance))
+    summarise(median_abundance = median(Abundance), sd_abundance = sd(Abundance))
 }
 
 # Directory structure using here::here()
