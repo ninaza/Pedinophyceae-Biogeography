@@ -1,81 +1,64 @@
-# Load necessary packages
-library(tidyverse)
-library(here)
+# Habitat Analysis Script
+
+# Load necessary libraries
 library(ggplot2)
-library(patchwork)
+library(dplyr)
+library(vegan)
+library(here)
 
-# Function to load abundance data
-load_abundance_data <- function(file_path) {
-  read.csv(here(file_path))
+# Function to create environment plots
+create_env_plot <- function(data) {
+  ggplot(data, aes(x = environment_variable, y = dependent_variable)) + 
+    geom_point() + 
+    theme_minimal() + 
+    labs(title = "Environment Plot")
 }
 
-# Function to load metadata
-load_metadata <- function(file_path) {
-  read.csv(here(file_path))
+# Function to create habitat violin plots
+create_violin_plots <- function(data) {
+  ggplot(data, aes(x = habitat, y = nreads)) + 
+    geom_violin() + 
+    theme_minimal() + 
+    labs(title = "Violin Plot of nreads")
+
+  ggplot(data, aes(x = habitat, y = relative_abundance)) + 
+    geom_violin() + 
+    theme_minimal() + 
+    labs(title = "Violin Plot of Relative Abundance")
 }
 
-# Function to plot environment analysis (customize as needed)
-plot_environment <- function(data) {
-  # Normalize data if necessary
-  normalized_data <- scale(data)
-  ggplot(normalized_data, aes(x = factor(Habitat), y = Abundance)) +
-    geom_violin() +
-    theme_minimal() +
-    labs(title = "Environment Plot Analysis")
+# Function for Kruskal-Wallis test
+run_kruskal_test <- function(data){
+  kruskal.test(dependent_variable ~ habitat, data = data)
 }
 
-# Function for habitat abundance visualizations
-plot_habitat_abundance <- function(data) {
-  ggplot(data, aes(x = factor(Habitat), y = Abundance)) +
-    geom_violin() +
-    theme_minimal() +
-    labs(title = "Habitat Abundance Visualization")
+# Function for summary statistics
+get_summary_stats <- function(data){
+  data %>% 
+    group_by(habitat) %>% 
+    summarise(
+      mean_nreads = mean(nreads),
+      mean_relative_abundance = mean(relative_abundance),
+      .groups = 'drop'
+    )
 }
 
-# Statistical tests
-perform_statistical_tests <- function(data) {
-  kruskal.test(Abundance ~ Habitat, data = data)
-}
+# Load your data
+# Make sure to adjust the path according to your directory structure
+habitat_data <- read.csv(here("data", "habitat_data.csv"))
 
-# Summary statistics by habitat
-summary_statistics_by_habitat <- function(data) {
-  data %>%
-    group_by(Habitat) %>%
-    summarise(median_abundance = median(Abundance), sd_abundance = sd(Abundance))
-}
+# Generate plots
+env_plot <- create_env_plot(habitat_data)
+violin_plots <- create_violin_plots(habitat_data)
 
-# Directory structure using here::here()
-data_dir <- here("data")
-raw_data_dir <- here("data/raw")
-metadata_dir <- here("data/metadata")
-plots_dir <- here("plots")
-results_dir <- here("results")
+# Run statistical tests
+kruskal_result <- run_kruskal_test(habitat_data)
 
-# Ensure directories exist
-dir.create(data_dir, showWarnings = FALSE)
-dir.create(raw_data_dir, showWarnings = FALSE)
-dir.create(metadata_dir, showWarnings = FALSE)
-dir.create(plots_dir, showWarnings = FALSE)
-dir.create(results_dir, showWarnings = FALSE)
+# Get summary statistics
+summary_stats <- get_summary_stats(habitat_data)
 
-# Main analysis function
-main_analysis <- function() {
-  abundance_data <- load_abundance_data("data/raw/abundance.csv")
-  metadata <- load_metadata("data/metadata/metadata.csv")
-  
-  # Perform analysis
-  plot_env <- plot_environment(abundance_data)
-  plot_habitat <- plot_habitat_abundance(abundance_data)
-  stat_results <- perform_statistical_tests(abundance_data)
-  summary_stats <- summary_statistics_by_habitat(abundance_data)
-  
-  # Save plots
-  ggsave(here(plots_dir, "environment_plot.png"), plot_env)
-  ggsave(here(plots_dir, "habitat_abundance_plot.png"), plot_habitat)
-
-  # Return results
-  list(statistical_results = stat_results, summary_statistics = summary_stats)
-}
-
-# Run the analysis
-results <- main_analysis()
+# Print results
+print(env_plot)
+print(violin_plots)
+print(kruskal_result)
+print(summary_stats)
