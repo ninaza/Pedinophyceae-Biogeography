@@ -15,7 +15,7 @@ join_marine <- inner_join(metadata, abundance_table) %>%
   filter(habitat == "Marine")
 
 # plot nreads per size fraction
-size_violin <- ggplot(join_marine, aes(x = size_fraction, y = nreadsPedino)) +
+size_violin <- ggplot(join_marine, aes(x = size_fraction, y = nreads)) +
   geom_violin(show.legend=FALSE, aes(fill = size_fraction), alpha = 0.5) +
   geom_jitter(show.legend=FALSE, width = 0.1, alpha = 0.4) +
   scale_y_log10() +
@@ -54,7 +54,7 @@ n_asvs_filtered <- n_distinct(size_filtered$amplicon)
 
 ## Upset plot of ASV overlap across size fractions
 size_filtered <- size_filtered %>%
-  filter(nreadsPedino > 0) # Keep only detections
+  filter(nreads > 0) # Keep only detections
 
 # Determine presence per Size Fraction
 # An ASV is 'present' in a fraction if it appears in at least one sample of that fraction
@@ -86,7 +86,7 @@ dev.off()
 # Prepare a matrix of Relative Abundance per Size Fraction
 matrix_data <- size_filtered %>%
   group_by(amplicon, size_fraction) %>%
-  summarise(Sum_Reads = sum(nreadsPedino), .groups = "drop") %>%
+  summarise(Sum_Reads = sum(nreads), .groups = "drop") %>%
   group_by(amplicon) %>%
   mutate(Rel_Abund = Sum_Reads / sum(Sum_Reads)) %>% # Normalize per ASV to see "preference"
   select(-Sum_Reads) %>%
@@ -99,7 +99,7 @@ ternary_df <- as.data.frame(matrix_data)
 # Join total reads back to your ternary data
 total_reads <- size_filtered %>% 
   group_by(amplicon) %>% 
-  summarise(Total_Abundance = log10(sum(nreadsPedino)))
+  summarise(Total_Abundance = log10(sum(nreads)))
 
 ternary_df_with_size <- ternary_df %>%
   rownames_to_column("amplicon") %>%
@@ -127,14 +127,14 @@ potential_symbionts
 # Pivot to wide format (Community Matrix)
 community_matrix <- size_filtered %>%
   group_by(sample, amplicon) %>%
-  summarise(Reads = sum(nreadsPedino), .groups = "drop") %>%
+  summarise(Reads = sum(nreads), .groups = "drop") %>%
   pivot_wider(names_from = amplicon, values_from = Reads, values_fill = 0) %>%
   column_to_rownames("sample")
 
 # Align Metadata
 # Ensure metadata contains only the samples present in the matrix and in the same order
 metadata_final <- size_filtered %>%
-  select(-amplicon, -nreadsPedino, -relative_abundance, -abundance_percent) %>%
+  select(-amplicon, -nreads, -rel_abundance, -rel_abundance_pct) %>%
   distinct() %>%
   filter(sample %in% rownames(community_matrix)) %>%
   arrange(match(sample, rownames(community_matrix)))
