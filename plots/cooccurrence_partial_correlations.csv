@@ -1,0 +1,5 @@
+"model","rho","p_value","sig"
+"Uncorrected",0.553749468777706,3.57920047508088e-59,"***"
+"Depth corrected",-0.0124549735278076,0.821128886478184,"n.s."
+"Temperature corrected",0.525606375592061,5.16719741948218e-29,"***"
+"Depth + Temperature corrected",0.00308640824136406,0.966650694406168,"n.s."
