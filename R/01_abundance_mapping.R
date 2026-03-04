@@ -176,7 +176,7 @@ create_abundance_map <- function(data, title = "Pedinophyceae Global Distributio
 
 # Define file paths
 abundance_file <- here("data", "raw", "pedinos_filtered_abundance.csv")
-metadata_file <- here("data", "metadata", "eukbank_18S_V4_samples.tsv")
+metadata_file <- here("data", "raw", "eukbank_18S_V4_samples.tsv")
 
 # Check if files exist
 if (!file.exists(abundance_file)) {
