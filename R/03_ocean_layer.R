@@ -8,7 +8,7 @@ palette <- met.brewer("Renoir")
 
 abundance_table <- read.table("data/edited/pedinos_filtered_abundance.csv", 
                               sep = ",", header = T, dec = ".")
-metadata <- read.table("data/edited/pedinos_edit_filtered_metadata.csv", 
+metadata <- read.table("data/edited/pedinos_samples_edited.csv", 
                        sep = ",", header = T, dec = ".")
 
 join_marine <- inner_join(metadata, abundance_table) %>%
@@ -24,18 +24,18 @@ size_filtered <- join_marine %>%
 # Summarize the total abundance of your taxon per sample
 depth_data <- size_filtered %>%
   group_by(sample) %>%
-  summarise(Total_Taxon_Abundance = sum(nreadsPedino)) %>%
+  summarise(Total_Taxon_Abundance = sum(nreads)) %>%
   left_join(join_marine, by = "sample")
 
 ggplot(depth_data, aes(x = Total_Taxon_Abundance, y = depth)) +
   geom_point(show.legend=FALSE, alpha = 0.6) +
   scale_y_reverse() + # Put 0 at the top
   geom_hline(yintercept = 200, linetype = "dashed", color = "#5480B5FF") +
-  labs(x = "Relative Abundance", y = "Depth (m)") +
+  labs(x = "N reads (Pedinophyceae)", y = "Depth (m)") +
   theme_minimal()
 
 ## abundance by ocean layer
-ocena_layer <- ggplot(depth_data, aes(x = ocean_layer, y = Total_Taxon_Abundance, fill = ocean_layer)) +
+ocean_layer <- ggplot(depth_data, aes(x = ocean_layer, y = Total_Taxon_Abundance, fill = ocean_layer)) +
   geom_violin(alpha = 0.5, scale = "width", trim = FALSE, color = NA) +
   geom_jitter(width = 0.15, alpha = 0.3, size = 1.5) +
   stat_summary(fun = median, geom = "crossbar", width = 0.5, 
@@ -44,15 +44,15 @@ ocena_layer <- ggplot(depth_data, aes(x = ocean_layer, y = Total_Taxon_Abundance
   scale_y_log10() +
   scale_fill_manual(values = c("sunlit" = "#FFD700", "dark" = "#2F4F4F")) +
   theme_minimal()
-ocena_layer
+ocean_layer
 
-ggsave(plot = ocena_layer, 
+ggsave(plot = ocean_layer, 
        filename = "plots/pedino_nreads_oceanlayer_violin.png", 
        dpi = 300, height = 6, width = 9, bg = "white")
 
 # Filter for only your green algae taxon
 green_algae_upset <- size_filtered %>%
-  filter(nreadsPedino > 0) %>%
+  filter(nreads > 0) %>%
   group_by(amplicon, ocean_layer) %>%
   summarise(Present = 1, .groups = "drop") %>%
   pivot_wider(names_from = ocean_layer, values_from = Present, values_fill = 0) %>%
