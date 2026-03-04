@@ -67,7 +67,7 @@ metadata <- metadata %>%
 
 metadata <- metadata %>%
   mutate(ocean_layer = case_when(
-    depth <= 200 & depth ~ "sunlit",
+    depth <= 200 ~ "sunlit",
     depth > 200 ~ "dark",
     TRUE ~ NA_character_  # Assign NA if it doesn't fit into any category
   ))
