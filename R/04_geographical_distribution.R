@@ -4,7 +4,7 @@ library(ggplot2)
 library(patchwork)
 
 ## PREP DATA
-abundance_table <- read.table("data/edited/pedinos_abundance.csv", 
+abundance_table <- read.table("data/edited/pedinos_filtered_abundance.csv", 
                               sep = ",", header = T, dec = ".")
 metadata_pedino <- read.table("data/edited/pedinos_samples_edited.csv", 
                            sep = ",", header = T, dec = ".")
