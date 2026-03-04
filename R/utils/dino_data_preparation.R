@@ -12,7 +12,7 @@ library(vegan)
 # 1. LOAD DATA
 # ============================================================
 abund_full <- read.delim("data/raw/eukbank_18S_V4_counts.tsv", sep = "\t", header = T, dec = ".")   # sample | asv | count
-taxonomy   <- read.csv("data/raw/eukbank_18S_V4_asvs.tsv", sep = "\t", header = T, dec = ".")          # amplicon | taxogroup1 | ...
+taxonomy <- read.delim("data/raw/eukbank_18S_V4_asvs.tsv", header = TRUE, dec = ".")
 
 # Quick checks
 cat("Full abundance table dimensions:", nrow(abund_full), "rows\n")
