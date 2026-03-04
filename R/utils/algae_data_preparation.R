@@ -11,7 +11,8 @@ oceans <- samples_longhurst %>%
   select(sample, name) %>%
   rename(ocean = name)
 
-metadata <- inner_join(metadata, oceans)
+metadata <- inner_join(metadata, oceans) %>%
+  rename(total_nreads = nreads)
 
 # Categorize habitats
 metadata <- metadata %>%
@@ -73,8 +74,61 @@ metadata <- metadata %>%
 
 write.csv(metadata, file = "data/edited/eukbank_18S_V4_samples_edited.csv", row.names = FALSE)
 
+# ============================================================
+# SUBSET FULL EUKBANK DATASET TO TARGET ALGAL GROUP
+# ============================================================
+
+# Load full eukaryotic abundance table (long format)
+eukbank_counts <- read.delim("data/raw/eukbank_18S_V4_counts.tsv",
+                             header = TRUE, dec = ".")
+
+# Load target ASV list
+target_list <- read.table("data/raw/pedinos_EukBank.uniq.list",
+                          header = FALSE, col.names = "amplicon")
+
+cat(sprintf("Total ASVs in EukBank table:    %d\n", n_distinct(eukbank_counts$amplicon)))
+cat(sprintf("Target ASVs in list:            %d\n", nrow(target_list)))
+
+# Subset to target ASVs only
+pedino_counts <- eukbank_counts %>%
+  filter(amplicon %in% target_list$amplicon)
+
+cat(sprintf("ASVs retained after subsetting: %d\n", n_distinct(pedino_counts$amplicon)))
+
+# ============================================================
+# CALCULATE RELATIVE ABUNDANCE
+# ============================================================
+# relative abundance:        ASV reads / total reads per sample
+# relative percent abundance: relative abundance x 100
+
+pedino_abundance <- pedino_counts %>%
+  left_join(
+    metadata %>% select(sample, total_nreads),
+    by = "sample"
+  ) %>%
+  mutate(
+    rel_abundance     = nreadsPedino / total_nreads,
+    rel_abundance_pct = rel_abundance * 100
+  )
+
+# Sanity check — relative abundances per sample should sum to 1
+sanity <- pedino_abundance %>%
+  group_by(sample) %>%
+  summarise(sum_rel = sum(rel_abundance), .groups = "drop")
+
+cat(sprintf("Relative abundance sums to 1 in all samples: %s\n",
+            all(abs(sanity$sum_rel - 1) < 1e-9)))
+
+# Save
+write.csv(pedino_abundance,
+          file      = "data/edited/pedino_abundance.csv",
+          row.names = FALSE)
+
+cat(sprintf("Saved: data/edited/pedino_abundance.csv (%d rows)\n",
+            nrow(pedino_abundance)))
+
 ## subsetting abundance table
-abundance_table <- read.table("data/edited/pedinos_abundance.csv", sep = ",", header = T, dec = ".")
+abundance_table <- pedino_abundance
 
 # filter out all amplicons appearing in two or less samples
 abundance_table <- abundance_table %>% 
