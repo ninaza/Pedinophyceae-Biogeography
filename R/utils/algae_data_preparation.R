@@ -111,14 +111,6 @@ pedino_abundance <- pedino_counts %>%
     rel_abundance_pct = rel_abundance * 100
   )
 
-# Sanity check — relative abundances per sample should sum to 1
-sanity <- pedino_abundance %>%
-  group_by(sample) %>%
-  summarise(sum_rel = sum(rel_abundance), .groups = "drop")
-
-cat(sprintf("Relative abundance sums to 1 in all samples: %s\n",
-            all(abs(sanity$sum_rel - 1) < 1e-9)))
-
 # Save
 write.csv(pedino_abundance,
           file      = "data/edited/pedino_abundance.csv",
@@ -128,19 +120,17 @@ cat(sprintf("Saved: data/edited/pedino_abundance.csv (%d rows)\n",
             nrow(pedino_abundance)))
 
 ## subsetting abundance table
-abundance_table <- pedino_abundance
-
 # filter out all amplicons appearing in two or less samples
-abundance_table <- abundance_table %>% 
+pedino_abundance <- pedino_abundance %>% 
   group_by(amplicon) %>%
   filter(sum(sample > 0) > 2) %>%
   ungroup()
 
-write.csv(abundance_table, file = "data/edited/pedinos_filtered_abundance.csv", row.names = FALSE)
+write.csv(pedino_abundance, file = "data/edited/pedinos_filtered_abundance.csv", row.names = FALSE)
 
 # Ensure metadata and ASV table samples match
 metadata <- read.table("data/edited/eukbank_18S_V4_samples_edited.csv", sep = ",", header = T, dec = ".")
-common_samples <- intersect(abundance_table$sample, metadata$sample)
-abundance_table <- abundance_table[abundance_table$sample %in% common_samples, ]
+common_samples <- intersect(pedino_abundance$sample, metadata$sample)
+abundance_table <- pedino_abundance[pedino_abundance$sample %in% common_samples, ]
 metadata <- metadata[metadata$sample %in% common_samples, ]
 write.csv(metadata, file = "data/edited/pedinos_samples_edited.csv", row.names = FALSE)
