@@ -5,12 +5,10 @@ library(vegan)
 library(UpSetR)
 library(MetBrewer)
 
-palette <- met.brewer("Renoir")
-
 ## PREP DATA
 abundance_table <- read.table("data/edited/pedinos_abundance.csv", 
                               sep = ",", header = T, dec = ".")
-metadata <- read.table("data/edited/pedinos_edit_filtered_metadata.csv", 
+metadata <- read.table("data/edited/pedinos_samples_edited.csv", 
                        sep = ",", header = T, dec = ".")
 ## SIZE FRACTION
 join_marine <- inner_join(metadata, abundance_table) %>%
@@ -22,10 +20,9 @@ size_violin <- ggplot(join_marine, aes(x = size_fraction, y = nreadsPedino)) +
   geom_jitter(show.legend=FALSE, width = 0.1, alpha = 0.4) +
   scale_y_log10() +
   annotation_logticks(sides = "l") +
-  #scale_fill_manual(values = palette[c(6,7,8)]) +
   theme_minimal() +
   labs(x=NULL,
-       y = "nreads Pedinophyceae")
+       y = " N reads (Pedinophyceae)")
 size_violin
 
 ggsave(plot = size_violin, 
