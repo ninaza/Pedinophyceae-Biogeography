@@ -107,7 +107,7 @@ pedino_abundance <- pedino_counts %>%
     by = "sample"
   ) %>%
   mutate(
-    rel_abundance     = nreadsPedino / total_nreads,
+    rel_abundance     = nreads / total_nreads,
     rel_abundance_pct = rel_abundance * 100
   )
 
