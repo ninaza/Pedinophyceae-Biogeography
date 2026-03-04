@@ -32,20 +32,18 @@ if (!dir.exists(output_dir)) {
 # ============================================================================
 
 prepare_abundance_data <- function(abundance_file, metadata_file) {
-  """
-  Load and prepare abundance and metadata files
-  
-  Args:
-    abundance_file: Path to CSV file with abundance data
-    metadata_file: Path to TSV file with metadata
-  
-  Returns:
-    Tibble with combined and filtered data
-  """
+  #Load and prepare abundance and metadata files
+  #
+  #Args:
+  #  abundance_file: Path to CSV file with abundance data
+  #  metadata_file: Path to TSV file with metadata
+  # 
+  #Returns:
+  #  Tibble with combined and filtered data
   
   # Load data files
   cat("Loading abundance data from:", abundance_file, "\n")
-abundance_table <- read.table(abundance_file, 
+  abundance_table <- read.table(abundance_file, 
                                 sep = ",", 
                                 header = TRUE, 
                                 dec = ".",
@@ -59,17 +57,17 @@ abundance_table <- read.table(abundance_file,
   
   # Combine datasets
   cat("Merging abundance and metadata...\n")
-pedinoAbunMeta <- full_join(abundance_table, metadata_all, by = "sample")
+  pedinoAbunMeta <- full_join(abundance_table, metadata_all, by = "sample")
   
   # Prepare and filter data
   pedinoAbunMetaFilter <- pedinoAbunMeta %>%
-    select(sample, longitude, latitude, abundance_percent, amplicon) %>%
+    select(sample, longitude, latitude, rel_abundance_pct, amplicon) %>%
     # Create marker for samples with/without abundance data
-    mutate(marker = ifelse(is.na(abundance_percent), "absent", "present"),
+    mutate(marker = ifelse(is.na(rel_abundance_pct), "absent", "present"),
            # Ensure numeric types
            longitude = as.numeric(longitude),
            latitude = as.numeric(latitude),
-           abundance_percent = as.numeric(abundance_percent)) %>%
+           abundance_percent = as.numeric(rel_abundance_pct)) %>%
     # Remove rows with missing coordinates
     filter(!is.na(longitude) & !is.na(latitude))
   
@@ -86,20 +84,18 @@ pedinoAbunMeta <- full_join(abundance_table, metadata_all, by = "sample")
 # ============================================================================
 
 create_abundance_map <- function(data, title = "Pedinophyceae Global Distribution") {
-  """
-  Create a world map showing Pedinophyceae abundance across samples
-  
-  Args:
-    data: Tibble with longitude, latitude, and abundance_percent columns
-    title: Title for the plot
-  
-  Returns:
-    ggplot2 object
-  """
+  #Create a world map showing Pedinophyceae abundance across samples
+  #
+  #Args:
+  #  data: Tibble with longitude, latitude, and abundance_percent columns
+  #  title: Title for the plot
+  # 
+  #Returns:
+  #  ggplot2 object
   
   # Separate data for plotting (samples with and without abundance)
   data_present <- data %>% filter(marker == "present")
-data_absent <- data %>% filter(marker == "absent")
+  data_absent <- data %>% filter(marker == "absent")
   
   # Create the map
   map <- ggplot() +
@@ -121,8 +117,8 @@ data_absent <- data %>% filter(marker == "absent")
     # Points for samples with detected Pedinophyceae (sized by abundance)
     geom_point(data = data_present, 
                aes(x = longitude, y = latitude, 
-                   size = abundance_percent, 
-                   colour = abundance_percent), 
+                   size = rel_abundance_pct, 
+                   colour = rel_abundance_pct), 
                alpha = 0.6,
                na.rm = TRUE) +
     
