@@ -114,7 +114,7 @@ ggsave(plot = ternary_plot,
        filename = "plots/pedino_size_ternary.png", 
        dpi = 300, height = 4, width = 6, bg = "white")
 
-## investigate the phylogenetic placement of miro-leaning ASVs
+## investigate the phylogenetic placement of micro-leaning ASVs
 # Define a threshold for 'Micro-associated'
 # For example, ASVs where more than 30% of their reads are in the Micro fraction
 potential_symbionts <- ternary_df %>%
